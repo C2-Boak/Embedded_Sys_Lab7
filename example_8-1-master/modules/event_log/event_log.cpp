@@ -52,7 +52,7 @@ void eventLogUpdate()
     eventLogElementStateUpdate( sirenLastState, currentState, "ALARM" );
     sirenLastState = currentState;
 
-    currentState = gasDetectorStateRead();
+    currentState = gasDetectedRead();
     eventLogElementStateUpdate( gasLastState, currentState, "GAS_DET" );
     gasLastState = currentState;
 
@@ -117,7 +117,7 @@ static void eventLogElementStateUpdate( bool lastState,
                                         bool currentState,
                                         const char* elementName )
 {
-    if ( lastState != currentState ) {        
-        eventLogWrite( currentState, elementName );       
+    if ( lastState != currentState ) {
+        eventLogWrite( currentState, elementName );
     }
 }

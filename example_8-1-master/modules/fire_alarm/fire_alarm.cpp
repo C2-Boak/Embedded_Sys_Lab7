@@ -38,29 +38,29 @@ static bool overTemperatureDetectorState = OFF;
 void fireAlarmInit()
 {
     temperatureSensorInit();
-    gasSensorInit();
-    fireAlarmTestButton.mode(PullDown); 
+    gasSensorReset();
+    fireAlarmTestButton.mode(PullDown);
 }
 
 void fireAlarmUpdate()
 {
     temperatureSensorUpdate();
-    gasSensorUpdate();
+    GasSenRead();
 
-    overTemperatureDetectorState = temperatureSensorReadCelsius() > 
+    overTemperatureDetectorState = temperatureSensorReadCelsius() >
                                    TEMPERATURE_C_LIMIT_ALARM;
 
     if ( overTemperatureDetectorState ) {
         overTemperatureDetected = ON;
     }
 
-    gasDetectorState = !gasSensorRead();
+    gasDetectorState = gasDetectedRead();
 
     if ( gasDetectorState ) {
         gasDetected = ON;
     }
 
-    if( fireAlarmTestButton ) {             
+    if( fireAlarmTestButton ) {
         overTemperatureDetected = ON;
         gasDetected = ON;
     }
@@ -76,7 +76,7 @@ bool overTemperatureDetectorStateRead()
     return overTemperatureDetectorState;
 }
 
-bool gasDetectedRead()
+bool gasDetectedReadV()
 {
     return gasDetected;
 }
@@ -89,7 +89,7 @@ bool overTemperatureDetectedRead()
 void fireAlarmDeactivate()
 {
     overTemperatureDetected = OFF;
-    gasDetected             = OFF;    
+    gasDetected             = OFF;
 }
 
 //=====[Implementations of private functions]==================================

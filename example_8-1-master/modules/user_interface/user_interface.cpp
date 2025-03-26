@@ -86,12 +86,12 @@ void userInterfaceInit()
 
     gateOpenButton.fall(&gateOpenButtonCallback);
     gateCloseButton.fall(&gateCloseButtonCallback);
-    
+
     incorrectCodeLed = OFF;
     systemBlockedLed = OFF;
     matrixKeypadInit( SYSTEM_TIME_INCREMENT_MS );
     userInterfaceDisplayInit();
-    
+
     lightLevelControlInit();
 }
 
@@ -178,7 +178,7 @@ static void userInterfaceDisplayReportStateInit()
     displayState = DISPLAY_REPORT_STATE;
     displayRefreshTimeMs = DISPLAY_REFRESH_TIME_REPORT_MS;
 
-    displayModeWrite( DISPLAY_MODE_CHAR );
+    //displayModeWrite( DISPLAY_MODE_CHAR );
 
     displayClear();
 
@@ -195,20 +195,21 @@ static void userInterfaceDisplayReportStateInit()
 static void userInterfaceDisplayReportStateUpdate()
 {
     char temperatureString[3] = "";
-
+    char gasString[4] = "";
     sprintf(temperatureString, "%.0f", temperatureSensorReadCelsius());
     displayCharPositionWrite ( 12,0 );
     displayStringWrite( temperatureString );
     displayCharPositionWrite ( 14,0 );
     displayStringWrite( "'C" );
 
-    displayCharPositionWrite ( 4,1 );
 
-    if ( gasDetectorStateRead() ) {
-        displayStringWrite( "Detected    " );
-    } else {
-        displayStringWrite( "Not Detected" );
-    }
+    sprintf(gasString, "%.0f", GasSenRead());
+    displayCharPositionWrite(4, 1);
+    displayStringWrite(gasString);
+    displayCharPositionWrite(8, 1);
+    displayStringWrite("PPM");
+
+
     displayCharPositionWrite ( 6,2 );
     displayStringWrite( "OFF" );
 }
@@ -220,7 +221,7 @@ static void userInterfaceDisplayAlarmStateInit()
 
     displayClear();
 
-    displayModeWrite( DISPLAY_MODE_GRAPHIC );
+    displayModeWrite(DISPLAY_MODE_GRAPHIC);
 
     displayFireAlarmGraphicSequence = 0;
 }
@@ -229,45 +230,45 @@ static void userInterfaceDisplayAlarmStateUpdate()
 {
     if ( ( gasDetectedRead() ) || ( overTemperatureDetectedRead() ) ) {
         switch( displayFireAlarmGraphicSequence ) {
-        case 0:
-            displayBitmapWrite( GLCD_fire_alarm[0] );
-            displayFireAlarmGraphicSequence++;
-            break;
-        case 1:
-            displayBitmapWrite( GLCD_fire_alarm[1] );
-            displayFireAlarmGraphicSequence++;
-            break;
-        case 2:
-            displayBitmapWrite( GLCD_fire_alarm[2] );
-            displayFireAlarmGraphicSequence++;
-            break;
-        case 3:
-            displayBitmapWrite( GLCD_fire_alarm[3] );
-            displayFireAlarmGraphicSequence = 0;
-            break;
-        default:
-            displayBitmapWrite( GLCD_ClearScreen );
-            displayFireAlarmGraphicSequence = 0;
-            break;
+            case 0:
+                displayBitmapWrite( GLCD_fire_alarm[0] );
+                displayFireAlarmGraphicSequence++;
+                break;
+            case 1:
+                displayBitmapWrite( GLCD_fire_alarm[1] );
+                displayFireAlarmGraphicSequence++;
+                break;
+            case 2:
+                displayBitmapWrite( GLCD_fire_alarm[2] );
+                displayFireAlarmGraphicSequence++;
+                break;
+            case 3:
+                displayBitmapWrite( GLCD_fire_alarm[3] );
+                displayFireAlarmGraphicSequence = 0;
+                break;
+            default:
+                displayBitmapWrite( GLCD_ClearScreen );
+                displayFireAlarmGraphicSequence = 0;
+                break;
         }
     } else if ( intruderDetectedRead() ) {
         switch( displayIntruderAlarmGraphicSequence ) {
-        case 0:
-            displayBitmapWrite( GLCD_intruder_alarm );
-            displayIntruderAlarmGraphicSequence++;
-            break;
-        case 1:
-        default:
-            displayBitmapWrite( GLCD_ClearScreen );
-            displayIntruderAlarmGraphicSequence = 0;
-            break;
+            case 0:
+                displayBitmapWrite( GLCD_intruder_alarm );
+                displayIntruderAlarmGraphicSequence++;
+                break;
+            case 1:
+            default:
+                displayBitmapWrite( GLCD_ClearScreen );
+                displayIntruderAlarmGraphicSequence = 0;
+                break;
         }
     }
 }
 
 static void userInterfaceDisplayInit()
 {
-    displayInit( DISPLAY_TYPE_GLCD_ST7920, DISPLAY_CONNECTION_SPI );
+    displayInit(DISPLAY_TYPE_LCD_HD44780, DISPLAY_CONNECTION_I2C_PCF8574_IO_EXPANDER);
     userInterfaceDisplayReportStateInit();
 }
 
@@ -281,30 +282,30 @@ static void userInterfaceDisplayUpdate()
         accumulatedDisplayTime = 0;
 
         switch ( displayState ) {
-        case DISPLAY_REPORT_STATE:
-            userInterfaceDisplayReportStateUpdate();
+            case DISPLAY_REPORT_STATE:
+                userInterfaceDisplayReportStateUpdate();
 
-            if ( alarmStateRead() ) {
-                userInterfaceDisplayAlarmStateInit();
-            }
-            break;
+                if ( alarmStateRead() ) {
+                    userInterfaceDisplayAlarmStateInit();
+                }
+                break;
 
-        case DISPLAY_ALARM_STATE:
-            userInterfaceDisplayAlarmStateUpdate();
+            case DISPLAY_ALARM_STATE:
+                userInterfaceDisplayAlarmStateUpdate();
 
-            if ( !alarmStateRead() ) {
+                if ( !alarmStateRead() ) {
+                    userInterfaceDisplayReportStateInit();
+                }
+                break;
+
+            default:
                 userInterfaceDisplayReportStateInit();
-            }
-            break;
-
-        default:
-            userInterfaceDisplayReportStateInit();
-            break;
+                break;
         }
 
     } else {
         accumulatedDisplayTime =
-            accumulatedDisplayTime + SYSTEM_TIME_INCREMENT_MS;
+                accumulatedDisplayTime + SYSTEM_TIME_INCREMENT_MS;
     }
 }
 
