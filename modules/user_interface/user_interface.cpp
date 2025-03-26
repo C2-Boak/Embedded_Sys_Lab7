@@ -177,8 +177,8 @@ static void userInterfaceDisplayReportStateInit()
 {
     displayState = DISPLAY_REPORT_STATE;
     displayRefreshTimeMs = DISPLAY_REFRESH_TIME_REPORT_MS;
-
-    displayModeWrite( DISPLAY_MODE_CHAR );
+   
+    //displayModeWrite( DISPLAY_MODE_CHAR );
 
     displayClear();
 
@@ -195,20 +195,21 @@ static void userInterfaceDisplayReportStateInit()
 static void userInterfaceDisplayReportStateUpdate()
 {
     char temperatureString[3] = "";
-
+    char gasString[4] = "";
     sprintf(temperatureString, "%.0f", temperatureSensorReadCelsius());
     displayCharPositionWrite ( 12,0 );
     displayStringWrite( temperatureString );
     displayCharPositionWrite ( 14,0 );
     displayStringWrite( "'C" );
 
-    displayCharPositionWrite ( 4,1 );
+   
+    sprintf(gasString, "%.0f", GasSenRead());
+    displayCharPositionWrite(4, 1);
+    displayStringWrite(gasString);
+    displayCharPositionWrite(8, 1);
+    displayStringWrite("PPM");
 
-    if ( gasDetectorStateRead() ) {
-        displayStringWrite( "Detected    " );
-    } else {
-        displayStringWrite( "Not Detected" );
-    }
+
     displayCharPositionWrite ( 6,2 );
     displayStringWrite( "OFF" );
 }
@@ -220,7 +221,7 @@ static void userInterfaceDisplayAlarmStateInit()
 
     displayClear();
 
-    displayModeWrite( DISPLAY_MODE_GRAPHIC );
+    displayModeWrite(DISPLAY_MODE_GRAPHIC);
 
     displayFireAlarmGraphicSequence = 0;
 }
@@ -267,7 +268,7 @@ static void userInterfaceDisplayAlarmStateUpdate()
 
 static void userInterfaceDisplayInit()
 {
-    displayInit( DISPLAY_TYPE_GLCD_ST7920, DISPLAY_CONNECTION_SPI );
+    displayInit(DISPLAY_TYPE_LCD_HD44780, DISPLAY_CONNECTION_I2C_PCF8574_IO_EXPANDER);
     userInterfaceDisplayReportStateInit();
 }
 
@@ -290,7 +291,7 @@ static void userInterfaceDisplayUpdate()
             break;
 
         case DISPLAY_ALARM_STATE:
-            userInterfaceDisplayAlarmStateUpdate();
+             userInterfaceDisplayAlarmStateUpdate();
 
             if ( !alarmStateRead() ) {
                 userInterfaceDisplayReportStateInit();

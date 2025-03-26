@@ -52,7 +52,7 @@ void eventLogUpdate()
     eventLogElementStateUpdate( sirenLastState, currentState, "ALARM" );
     sirenLastState = currentState;
 
-    currentState = gasDetectorStateRead();
+    currentState = gasDetectedRead();
     eventLogElementStateUpdate( gasLastState, currentState, "GAS_DET" );
     gasLastState = currentState;
 

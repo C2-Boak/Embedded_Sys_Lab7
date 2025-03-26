@@ -38,14 +38,14 @@ static bool overTemperatureDetectorState = OFF;
 void fireAlarmInit()
 {
     temperatureSensorInit();
-    gasSensorInit();
+    gasSensorReset();
     fireAlarmTestButton.mode(PullDown); 
 }
 
 void fireAlarmUpdate()
 {
     temperatureSensorUpdate();
-    gasSensorUpdate();
+    GasSenRead();
 
     overTemperatureDetectorState = temperatureSensorReadCelsius() > 
                                    TEMPERATURE_C_LIMIT_ALARM;
@@ -54,7 +54,7 @@ void fireAlarmUpdate()
         overTemperatureDetected = ON;
     }
 
-    gasDetectorState = !gasSensorRead();
+    gasDetectorState = gasDetectedRead();
 
     if ( gasDetectorState ) {
         gasDetected = ON;
@@ -76,7 +76,7 @@ bool overTemperatureDetectorStateRead()
     return overTemperatureDetectorState;
 }
 
-bool gasDetectedRead()
+bool gasDetectedReadV()
 {
     return gasDetected;
 }
