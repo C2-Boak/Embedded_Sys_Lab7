@@ -16,6 +16,7 @@
 #include "gate.h"
 #include "motion_sensor.h"
 #include "alarm.h"
+#include "LDR.h"
 
 //=====[Declaration of private defines]========================================
 
@@ -67,6 +68,7 @@ static void commandShowCurrentMotorState();
 static void commandShowCurrentGateState();
 static void commandMotionSensorActivate();
 static void commandMotionSensorDeactivate();
+static void command_Show_LDRSensor();
 
 //=====[Implementations of public functions]===================================
 
@@ -178,6 +180,7 @@ static void pcSerialComCommandUpdate( char receivedChar )
         case 'g': case 'G': commandShowCurrentGateState(); break;
         case 'i': case 'I': commandMotionSensorActivate(); break;
         case 'h': case 'H': commandMotionSensorDeactivate(); break;
+        case 'l': case 'L': command_Show_LDRSensor(); break;
         default: availableCommands(); break;
     } 
 }
@@ -199,6 +202,7 @@ static void availableCommands()
     pcSerialComStringWrite( "Press 'g' or 'G' to show the gate status\r\n" );    
     pcSerialComStringWrite( "Press 'i' or 'I' to activate the motion sensor\r\n" );
     pcSerialComStringWrite( "Press 'h' or 'H' to deactivate the motion sensor\r\n" );
+    pcSerialComStringWrite( "Press 'l' or 'L' to show the light state\r\n" ); 
     pcSerialComStringWrite( "\r\n" );
 }
 
@@ -264,6 +268,13 @@ static void commandShowCurrentTemperatureInFahrenheit()
     char str[100] = "";
     sprintf ( str, "Temperature: %.2f \xB0 C\r\n",
                     temperatureSensorReadFahrenheit() );
+    pcSerialComStringWrite( str );  
+}
+static void command_Show_LDRSensor()
+{
+    char str[100] = "";
+    sprintf ( str, "Light_Level: %.2f  Raw\r\n",
+                    LDR_Read());
     pcSerialComStringWrite( str );  
 }
 
@@ -356,3 +367,4 @@ static void commandMotionSensorDeactivate()
 {
     motionSensorDeactivate();
 }
+
