@@ -5,7 +5,6 @@
 #include "LDR.h"
 
 
-#define Dangerous_Gas_Level                    1000
 
 
 AnalogIn LDR(A2);

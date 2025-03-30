@@ -20,7 +20,7 @@
 
 //=====[Declaration and initialization of private global variables]============
 
-static float dutyCycle = 0.5f;
+static float dutyCycle = 0.2f;
 
 //=====[Implementations of public functions]===================================
 

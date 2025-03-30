@@ -1,5 +1,3 @@
 ROOT=.
-DEVICE_ID[/home/studio/workspace/embedded_sys_lab7]=0668FF485753667187124347
-DEVICE_TYPE[/home/studio/workspace/embedded_sys_lab7]=connected
 TARGET=NUCLEO_F439ZI
 TARGET_CODE=0797

@@ -1,90 +1,113 @@
-//=====[Libraries]=============================================================
-
 #include "arm_book_lib.h"
-
 #include "bright_control.h"
-
 #include "light_level_control.h"
+#include "LDR.h"
 
-//=====[Declaration of private defines]========================================
 
 #define LEDS_QUANTITY 3
+#define TRANSITION_TIME 30.0f  
+#define TICK_RATE 0.00001f       
+#define TRANSITION_STEPS (int)(TRANSITION_TIME / TICK_RATE)  
 
-//=====[Declaration of private data types]=====================================
 
-//=====[Declaration and initialization of public global objects]===============
-
-DigitalOut RGBLed[] = {(PB_4), (PA_0), (PD_12)};
-
+PwmOut RGBLed[] = {(PB_1), (PA_0), (PD_12)};  
 Ticker tickerBrightControl;
 
-//=====[Declaration and initialization of private global objects]===============
 
-//=====[Declaration of external public global variables]=======================
 
-//=====[Declaration and initialization of public global variables]=============
+static int tickCounter = 0;
 
-//=====[Declaration and initialization of private global variables]============
+static float redValue = 1.0f;   
+static float greenValue = 0.5f;  
+static float blueValue = 0.0f;  
+static int transitionPhase = 0;   
 
-static int onTime[LEDS_QUANTITY];
-static int offTime[LEDS_QUANTITY];
 
-static int tickRateMSBrightControl = 1;
-static int tickCounter[LEDS_QUANTITY];
 
-static float periodSFloat[LEDS_QUANTITY];
+static void setPeriod(lightSystem_t light, float period);
+static void tickerCallbackBrightControl();
+static void updateLEDColor();   
+static void resetTransition();  
 
-//=====[Declarations (prototypes) of private functions]========================
 
-static void setPeriod( lightSystem_t light, float period );
-static void tickerCallbackBrightControl( );
-
-//=====[Implementations of public functions]===================================
 
 void brightControlInit()
 {
-    tickerBrightControl.attach( tickerCallbackBrightControl, 
-                              ( (float) tickRateMSBrightControl) / 1000.0 );
+    tickerBrightControl.attach(tickerCallbackBrightControl, TICK_RATE); 
 
-    setPeriod( RGB_LED_RED, 0.01f );
-    setPeriod( RGB_LED_GREEN, 0.01f );
-    setPeriod( RGB_LED_BLUE, 0.01f );
+  
+    RGBLed[0].write(redValue);   
+    RGBLed[1].write(greenValue); 
+    RGBLed[2].write(blueValue);  
 
-    setDutyCycle( RGB_LED_RED, 0.5f );
-    setDutyCycle( RGB_LED_GREEN, 0.5f );
-    setDutyCycle( RGB_LED_BLUE, 0.5f );
+
+
 }
-
-void setDutyCycle( lightSystem_t light, float dutyCycle )
+void setDutyCycle(lightSystem_t light, float dutyCycle)
 {
-    onTime[light] = int ( ( periodSFloat[light] * dutyCycle ) * 1000 );
-    offTime[light] = int ( periodSFloat[light] * 1000) - onTime[light];
+    
+    RGBLed[light].write(dutyCycle);  
 }
 
 //=====[Implementations of private functions]==================================
 
-static void setPeriod( lightSystem_t light, float period )
+static void setPeriod(lightSystem_t light, float period)
 {
-    periodSFloat[light] = period;
+    // In case period adjustment is necessary, we can set it here.
 }
 
-static void tickerCallbackBrightControl( )
+static void tickerCallbackBrightControl()
 {
-    int i;
+    
+    updateLEDColor();   
+    LDR_Read(); 
+    
+    RGBLed[0].write(redValue - LDR_Level);   
+    RGBLed[1].write(greenValue - LDR_Level); 
+    RGBLed[2].write(blueValue - LDR_Level);  
 
-    for (i = 0 ; i < LEDS_QUANTITY ; i++) {
-        tickCounter[i]++;
-        if ( RGBLed[i].read() == ON ) {
-            if( tickCounter[i] > onTime[i] ) {
-                tickCounter[i] = 1;
-                if ( offTime[i] ) RGBLed[i] = OFF;
-                
-            }
-        } else {
-            if( tickCounter[i] > offTime[i] ) { 
-                tickCounter[i] = 1;
-                if ( onTime[i] ) RGBLed[i] = ON;
-            }
-        }
+   
+    tickCounter++;
+    if (tickCounter >= TRANSITION_STEPS) {
+        resetTransition();
+    }
+}
+
+static void updateLEDColor()
+
+{
+
+ 
+   
+    if (transitionPhase == 0) { 
+        redValue -= 1.0f / TRANSITION_STEPS;   
+        greenValue += 1.0f / TRANSITION_STEPS; 
+        blueValue += 1.0f / TRANSITION_STEPS;  
+    }
+    else {  
+        redValue += 1.0f / TRANSITION_STEPS;
+        greenValue -= 1.0f / TRANSITION_STEPS; 
+        blueValue -= 1.0f / TRANSITION_STEPS;  
+    }
+
+
+    if (redValue > 1.0f) redValue = 1.0f;
+    if (greenValue > 1.0f) greenValue = 1.0f;
+    if (blueValue > 1.0f) blueValue = 1.0f;
+
+    if (redValue < 0.0f) redValue = 0.0f;
+    if (greenValue < 0.0f) greenValue = 0.0f;
+    if (blueValue < 0.0f) blueValue = 0.0f;
+}
+
+static void resetTransition()
+{
+    
+    tickCounter = 0;
+    if (transitionPhase == 0) {
+        transitionPhase = 1;  
+    }
+    else {
+        transitionPhase = 0;  
     }
 }
